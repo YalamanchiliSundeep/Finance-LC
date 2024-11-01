@@ -4,6 +4,7 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import fitz  # PyMuPDF for PDFs
+import docx2txt  # For DOCX files
 import pytesseract  # For OCR of scanned images
 from PIL import Image
 import os
@@ -13,17 +14,12 @@ import re
 import time
 import io  # To handle file as byte stream
 from dotenv import load_dotenv
-from docx import Document
-
 
 # Load environment variables from .env file
 load_dotenv()
 
-# OpenAI API Key
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
-if not openai_api_key:
-    st.error("OpenAI API Key not found. Please set the API key in the environment.")
+# Set the OpenAI API key from the environment variable
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Load Sentence Transformer for embedding
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
@@ -104,12 +100,10 @@ def extract_text_from_pdf(pdf_file):
 # Extract text from DOCX
 def extract_text_from_docx(docx_file):
     try:
-        doc = Document(docx_file)
-        return '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+        return docx2txt.process(docx_file)
     except Exception as e:
         st.error(f"Error extracting DOCX: {str(e)}")
         return ""
-
 
 # Extract text from scanned images
 def extract_text_from_image(image_file):
@@ -159,7 +153,7 @@ Document text:
 \"\"\"{document_text}\"\"\"
 """
     try:
-        response = openai.Completion.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=500,

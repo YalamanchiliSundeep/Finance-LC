@@ -1,7 +1,9 @@
 streamlit
 openai
-sqlalchemy
-sqlite3  # For local database testing
-pillow
-fitz
-traits
+streamlit
+PyMuPDF
+nltk
+sentence-transformers
+google-generativeai
+python-dotenv
+python-docx

@@ -159,7 +159,7 @@ Document text:
 \"\"\"{document_text}\"\"\"
 """
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.Completion.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=500,

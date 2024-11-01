@@ -1,0 +1,9 @@
+streamlit
+openai
+google-cloud-storage
+google-cloud-vision
+google-cloud-language
+google-cloud-sql-connector
+pg8000
+sqlalchemy
+sqlite3  # For local database testing

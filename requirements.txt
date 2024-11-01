@@ -1,9 +1,11 @@
 streamlit
 openai
-streamlit
-PyMuPDF
-nltk
+faiss-cpu
 sentence-transformers
-google-generativeai
-python-dotenv
+pymupdf
 python-docx
+pytesseract
+pillow
+pandas
+python-dotenv
+numpy

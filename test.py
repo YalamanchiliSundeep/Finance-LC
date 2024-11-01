@@ -4,7 +4,6 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import fitz  # PyMuPDF for PDFs
-import docx2txt  # For DOCX files
 import pytesseract  # For OCR of scanned images
 from PIL import Image
 import os

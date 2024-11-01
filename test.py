@@ -14,6 +14,7 @@ import re
 import time
 import io  # To handle file as byte stream
 from dotenv import load_dotenv
+from docx import Document
 
 
 # Load environment variables from .env file
@@ -104,10 +105,12 @@ def extract_text_from_pdf(pdf_file):
 # Extract text from DOCX
 def extract_text_from_docx(docx_file):
     try:
-        return docx2txt.process(docx_file)
+        doc = Document(docx_file)
+        return '\n'.join([paragraph.text for paragraph in doc.paragraphs])
     except Exception as e:
         st.error(f"Error extracting DOCX: {str(e)}")
         return ""
+
 
 # Extract text from scanned images
 def extract_text_from_image(image_file):

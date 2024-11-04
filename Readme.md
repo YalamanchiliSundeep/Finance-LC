@@ -48,4 +48,6 @@ Notifications and Alerts: Automatic notifications for approaching expiration dat
 Integration with Additional Financial Systems: To streamline data import/export with other finance tools.
 
 ## License
-This project is licensed under the Balanced Rock Power.
+This software is proprietary and licensed for internal use only by Balanced Rock Power. 
+For more details, refer to the `LICENSE.md` file in this repository. Unauthorized distribution 
+or use outside of Balanced Rock Power is strictly prohibited.

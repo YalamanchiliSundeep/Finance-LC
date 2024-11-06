@@ -4,6 +4,7 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import fitz  # PyMuPDF for PDFs
+import docx2txt
 import pytesseract  # For OCR of scanned images
 from PIL import Image
 import os
@@ -217,7 +218,7 @@ def save_to_dataframe(doc_name, extracted_text, issuer, beneficiary, amount, exp
 
 # Function to display the dataset of stored documents
 def display_dataset():
-    st.subheader("BRP Finance LC's and Bonds Dataset")
+    st.subheader("Documents Metadata in the Dataset")
     st.dataframe(df_metadata.drop(columns=["Extracted Text"]))  # Exclude 'Extracted Text' column when showing the table
 
 # Search FAISS index with a query

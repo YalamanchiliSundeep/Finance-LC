@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 import fitz  # PyMuPDF for PDFs
 import pytesseract  # For OCR of scanned images
 from PIL import Image
+from docx import Document
 import os
 import pandas as pd  # To display the dataset
 import pickle
@@ -17,8 +18,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Set the OpenAI API key from the environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize the OpenAI client
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Load Sentence Transformer for embedding
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
@@ -96,14 +97,13 @@ def extract_text_from_pdf(pdf_file):
         st.error(f"Error extracting PDF: {str(e)}")
         return ""
 
-# Extract text from DOCX
-def extract_text_from_docx(docx_file):
-    try:
-        return docx2txt.process(docx_file)
-    except Exception as e:
-        st.error(f"Error extracting DOCX: {str(e)}")
-        return ""
-
+# Function to extract text from a .docx file
+def extract_text_from_docx(docx_file_path):
+    doc = Document(docx_file_path)
+    text = []
+    for paragraph in doc.paragraphs:
+        text.append(paragraph.text)
+    return "\n".join(text)
 # Extract text from scanned images
 def extract_text_from_image(image_file):
     try:
@@ -134,31 +134,32 @@ def extract_text_from_file(uploaded_file):
 # Use GPT to extract refined metadata, including Purpose
 def extract_metadata_with_gpt(document_text):
     prompt = f"""
-The following is a legal document. Extract the following details if present:
+    The following is a legal document. Extract the following details if present:
 
-1. Issuer (the bank that issued the letter of credit)
-2. Beneficiary (the party who receives the benefit)
-3. Amount in USD
-4. Expiration Date
-5. Contract Number
-6. Project Name
-7. Purpose (the reason or intent behind the document)
-8. Cancellation policy
-9. Renewal policy
+    1. Issuer (the bank that issued the letter of credit)
+    2. Beneficiary (the party who receives the benefit)
+    3. Amount in USD
+    4. Expiration Date
+    5. Contract Number
+    6. Project Name
+    7. Purpose (the reason or intent behind the document)
+    8. Cancellation policy
+    9. Renewal policy
 
-Be as specific as possible, and return the details in JSON format with the following keys: issuer, beneficiary, amount, expiration_date, contract_number, project_name, purpose, cancellation, renewal.
+    Be as specific as possible, and return the details in JSON format with the following keys: issuer, beneficiary, amount, expiration_date, contract_number, project_name, purpose, cancellation, renewal.
 
-Document text:
-\"\"\"{document_text}\"\"\"
-"""
+    Document text:
+    \"\"\"{document_text}\"\"\""""
+    
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=500,
-            temperature=0.0,
+            temperature=0.0
         )
-        return response.choices[0].message["content"]
+        # Directly access the content
+        return response.choices[0].message.content
     except Exception as e:
         st.error(f"Error extracting metadata with GPT: {str(e)}")
         return ""
@@ -236,12 +237,12 @@ def search_faiss(query, k=3):
 # Generate an answer using GPT-4 based on the retrieved documents (RAG approach)
 def generate_answer_with_gpt(documents, query, retries=3, delay=5):
     context = "\n\n".join([f"Document Name: {doc['document_name']}\nContent: {doc['content'][:1000]}" for doc in documents])
-    
+
     prompt = f"""
     You are an assistant that answers questions based on provided documents.
 
     Documents:
-    \"\"\"{context}\"\"\"
+    \"\"\"{context}\"\"\" 
 
     Question:
     {query}
@@ -250,14 +251,15 @@ def generate_answer_with_gpt(documents, query, retries=3, delay=5):
     """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=300,
-            temperature=0.0,
+            temperature=0.0
         )
-        return response.choices[0].message["content"].strip()
-
+        # Directly access the content
+        return response.choices[0].message.content.strip()
+    
     except openai.error.RateLimitError as e:
         if retries > 0:
             st.warning(f"Rate limit reached. Retrying in {delay} seconds...")
@@ -266,6 +268,7 @@ def generate_answer_with_gpt(documents, query, retries=3, delay=5):
         else:
             st.error("Rate limit reached. Unable to process the request after multiple attempts.")
             return "An error occurred while generating the answer."
+    
     except Exception as e:
         st.error(f"Error generating answer with GPT: {str(e)}")
         return "An error occurred while generating the answer."
@@ -412,3 +415,5 @@ doc_to_delete = st.selectbox("Select a document to delete", doc_names)
 
 if st.button("Delete Selected Document"):
     delete_specific_row(doc_to_delete)
+
+ 
